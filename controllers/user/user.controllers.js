@@ -104,16 +104,56 @@ export const profile = async (req, res) => {
 };
 
 // edit profile
+// export const editProfile = async (req, res) => {
+//   try {
+//     const userId = req.userId;
+
+//     const { username, email } = req.body;
+
+//     const updateData = { username, email };
+
+//     const updateUser = await User.findByIdAndUpdate(userId, updateData);
+//     res.status(201).json(updateUser);
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: "Server error" });
+//   }
+// };
 export const editProfile = async (req, res) => {
   try {
     const userId = req.userId;
-
     const { username, email } = req.body;
 
-    const updateData = { username, email };
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    const updateUser = await User.findByIdAndUpdate(userId, updateData);
-    res.status(201).json(updateUser);
+    // text update
+    if (username) user.username = username;
+    if (email) user.email = email;
+
+    // avatar update (only if file uploaded)
+    if (req.file) {
+      const uploadAvatar = cloudinary.uploader.upload_stream(
+        { folder: "user_avatar" },
+        async (error, result) => {
+          if (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Avatar upload failed" });
+          }
+
+          user.avatar = result.secure_url;
+          await user.save();
+
+          res.status(200).json(user);
+        }
+      );
+
+      uploadAvatar.end(req.file.buffer);
+    } else {
+      // only text updated
+      await user.save();
+      res.status(200).json(user);
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error" });

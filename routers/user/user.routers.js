@@ -15,11 +15,14 @@ const router = express.Router();
 router.post("/register", userUpload.single("file"), register);
 router.post("/login", login);
 router.get("/profile", isAuthentication, profile);
-router.put("/editProfile", isAuthentication, editProfile);
+router.put(
+  "/editProfile",
+  isAuthentication,
+  userUpload.single("file"),
+  editProfile
+);
 router.post("/forgot-password", forgetPassword);
 router.post("/otpVerify", verifyOtp);
 router.post("/reset-password", resetPassword);
-
-
 
 export default router;
