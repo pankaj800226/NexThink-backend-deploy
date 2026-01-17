@@ -55,17 +55,29 @@ export const createTodo = async (req, res) => {
 export const getTask = async (req, res) => {
   try {
     const userId = req.userId;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 6
+    const skip = (page - 1) * limit
 
-    const findTask = await Todo.find({ userId }).sort({ createdAt: -1 });
+    const total = await Todo.countDocuments({ userId })
 
-    if (!findTask) {
-      return res.status(404).json({ message: "Task not found" });
+    const findTask = await Todo.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+
+    if (findTask.length === 0) {
+      return res.status(404).json({ message: "No tasks found" });
     }
+    
 
     res.status(200).json({
       message: "task find sucessfully",
       findTask,
+      currentPage: page,
+      totalPage: Math.ceil(total / limit)
     });
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error" });

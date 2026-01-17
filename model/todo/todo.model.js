@@ -11,24 +11,31 @@ const todoSchema = new mongoose.Schema(
     title: {
       type: String,
       required: true,
+      trim: true,
+      index: true,
     },
     description: {
       type: String,
       required: true,
+      trim: true,
+
     },
 
     price: {
       type: Number,
+      default: 0
     },
 
     category: {
       type: String,
       required: true,
+      index: true,
     },
 
     priority: {
       type: String,
       required: true,
+      index: true,
     },
 
     status: {
@@ -49,5 +56,14 @@ const todoSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+todoSchema.index({ userId: 1, createdAt: -1 });
+
+// Dashboard filtering (user + status)
+todoSchema.index({ userId: 1, status: 1 });
+
+// Category-wise todos per user
+todoSchema.index({ userId: 1, category: 1 });
+
 
 export const Todo = mongoose.model("Todo", todoSchema);
